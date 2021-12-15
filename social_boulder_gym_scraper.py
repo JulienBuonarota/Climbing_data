@@ -3,6 +3,7 @@ import selenium as sel
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common import exceptions as sel_exceptions
 from selenium.webdriver.common.keys import Keys
 import time
 import re
@@ -22,7 +23,6 @@ try:
     element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, 'card-card-tr-46')))
     # Once the first boulders are there, the page need to be scrolled down to get them all
-    # html = driver.find_element_by_tag_name('html') # used to send keys to scroll down
     html = driver.find_element(By.TAG_NAME, 'html')
     bottom_page_reached = False
     while not bottom_page_reached:
@@ -31,13 +31,55 @@ try:
         sb_buttons = driver.find_elements(By.TAG_NAME, 'button')
         all_button_texts = "".join([i.text for i in sb_buttons])
         bottom_page_reached = bool(re.search('See taken down problems', all_button_texts))
-
 finally:
-    # get all the boulders
-    page_source = bs.BeautifulSoup(driver.page_source, 'html.parser')
-    boulders = page_source.find_all('div', {'class': 'card-card-tr-46'}, style=True)
-    # driver.close()
-    # TODO Open each boulder 'card' to load all info (date, tags and image)
+    # Open and store all boulder 'card'
+    boulders_source = []
+    # each boulder 'card' needs to be expanded to have access to the tag, date and image
+    boulders = driver.find_elements(By.CLASS_NAME, 'card-card-tr-46')
+    # It is necessary to scroll back up the page to be able to click on the buttons
+    driver.execute_script("window.scrollTo(0, 0)")
+    for count, boulder in enumerate(boulders):
+        print("{}/{}".format(count, len(boulders)))
+        # get the boulder unique name
+        name = boulder.find_element(By.TAG_NAME, 'div').get_attribute('name')
+        # find the expand button and click it to open it, will try a maximum of 3 times
+        for i in range(3):
+            button = boulder.find_element(By.XPATH,
+                                         "//div[@name='{}']/span/div/div[6]/div".format(name))
+            sel.webdriver.ActionChains(driver).click(button).perform()
+            # wait for the tags to load,
+            try:
+                element = WebDriverWait(driver, 3).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'card-info-tr-58')))
+            except sel_exceptions.TimeoutException:
+                print("The boulder 'card' never opened at boulder {}/{} after {} clicks"
+                      .format(count, len(boulders), i+1))
+                continue
+            else:
+                break
+
+        # get the source html for the complete boulder
+        boulder_source = boulder.get_attribute('innerHTML')
+        boulder_source = bs.BeautifulSoup(boulder_source, 'html.parser')
+        boulders_source.append(boulder_source)
+
+        # a short sleep is necessary in order for the next button click to work
+        # probably as to do with position update time
+        time.sleep(0.3)
+        # find the expand button and click it to close it, will try a maximum of 3 times
+        for i in range(3):
+            sel.webdriver.ActionChains(driver).click(button).perform()
+            # wait for the tags earlier retrieve to disappear from the page
+            try:
+                element = WebDriverWait(driver, 3).until(
+                    EC.invisibility_of_element(element))
+            except sel_exceptions.TimeoutException:
+                print("The boulder 'card' never closed at boulder {}/{} after {} clicks"
+                      .format(count, len(boulders), i + 1))
+                continue
+            else:
+                break
+
 
 ## boulder parser
 import cssutils
@@ -111,7 +153,7 @@ map_section_position = string_to_polyline_coord(map_section['points'])
 points_and_completion = b.find('div', {'class': 'cardHeader-points-tr-20'}).text
 points, completion = [int(i) for i in points_and_completion.split('pts')]
 
-## Tags
+## Tags, date and image
 # each boulder 'card' needs to be expanded to have access to the tag, date and image
 boulders_sel = driver.find_elements(By.CLASS_NAME, 'card-card-tr-46')
 
