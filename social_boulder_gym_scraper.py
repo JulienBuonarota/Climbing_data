@@ -85,6 +85,14 @@ for count, boulder in enumerate(boulders):
         if i == 2:
             raise Exception("Unable to close boulder card and thus get the proper html content")
 
+## temporary save of bouldres source html
+import json
+json.dump('ttt', boulders_source)
+import pickle
+with open('boulder_source.pckl', 'wb') as file:
+    pickle.dump(boulders_source, file)
+with open('boulder_source.pckl', 'rb') as file:
+    boulders_source = pickle.load(file)
 
 ## boulder parser
 import cssutils
@@ -106,7 +114,7 @@ def string_to_rgb(s: str) -> tuple:
     :param s: string to parse
     :return: tuple representing the rgb
     """
-    r = re.compile('[1-9]+')
+    r = re.compile('[0-9]+')
     m = r.findall(s)
     return tuple([int(i) for i in m])
 
@@ -135,9 +143,9 @@ boulder_color_rgb = {"purple": (138, 43, 226), "black": (0, 0, 0), "red": (221, 
 boulder_rgb_color = {v: k for k, v in boulder_color_rgb.items()}
 
 boulder_num = 1
-b = boulders[boulder_num]
+b = boulders_source[boulder_num]
 ## Grade =  color + number
-grade_scale = b.find_all('svg', {'class': 'cardHeader-labelIcon-tr-10'}, style=True)
+grade_scale = b.find_all('svg', {'class': 'cardHeader-labelIcon-tr-10'})
 # the grade color is in the style of the second svg
 style = cssutils.parseStyle(grade_scale[1]['style'])
 grade_rgb = string_to_rgb(style['fill'])
@@ -158,24 +166,39 @@ map_section_position = string_to_polyline_coord(map_section['points'])
 points_and_completion = b.find('div', {'class': 'cardHeader-points-tr-20'}).text
 points, completion = [int(i) for i in points_and_completion.split('pts')]
 
+# points_and_completion = b.find('div', {'class': 'cardHeader-points-tr-20'})
+# points_and_completion_text = [i.text for i in points_and_completion.find_all('div')]
+# points = int(points_and_completion_text[0].split('pts')[0])
+# completion = int(points_and_completion_text[1])
 ## Tags, date and image
-# each boulder 'card' needs to be expanded to have access to the tag, date and image
-boulders_sel = driver.find_elements(By.CLASS_NAME, 'card-card-tr-46')
-
-b_sel = boulders_sel[boulder_num]
-b_button = b_sel.find_element(By.TAG_NAME, "button")
-sel.webdriver.ActionChains(driver).click(b_button).perform()
-## get the date and tags
-# get the html of the boulder element and its children
-boulder_source = b_sel.get_attribute('innerHTML')
-boulder_source = bs.BeautifulSoup(boulder_source, 'html.parser')
+boulder_source = b
 # get the date and tags
 infos = boulder_source.find_all('div', {'class': 'card-info-tr-58'})
-date = infos[0].text
-tags = tags_parser(infos[1].text)
+infos_text = [i.text for i in infos]
+# Infos cn catch several other elements representing likes, comments,...
+# search of element that match a date format
+date_regex = re.compile('\d+-\d+-\d+')
+date_index = [bool(re.match(date_regex, i)) for i in infos_text].index(True)
+date = infos_text[date_index]
+# search element matching tags format
+tags_index = [bool(re.match('#[a-zA-Z]+', i)) for i in infos_text].index(True)
+tags = tags_parser(infos_text[tags_index])
 # get the image
 image_url = boulder_source.find('img', {'class': 'card-image-tr-41'})['src']
 local_filename, headers = urllib.request.urlretrieve(image_url, "./images/1.jpg")
+# Get the likes and comments, if there is some (otherwise not displayed)
+like_svg_path = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 " \
+                 "14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+comment_svg_path = "M21.99 4c0-1.1-.89-2-1.99-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zM18 " \
+                   "14H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"
+likes = 0
+comments = 0
+for count, info in enumerate(infos):
+    svg_path = info.find('path')['d']
+    if svg_path == like_svg_path:
+        likes = int(infos[count].text)
+    elif svg_path == comment_svg_path:
+        comments = int(infos[count].text)
 
 ## Verification of script
 print("""
@@ -184,10 +207,12 @@ Boulder number {}
 - position in gym {}
 - tags {}
 - date added {}
+- likes {}
+- comments {}
 - nb points {}
 - nb completions {}
 - image {}
-""".format(boulder_num, grade_color, grade_value, map_section_position, tags, date, points, completion, image_url))
+""".format(boulder_num, grade_color, grade_value, map_section_position, tags, date, likes, comments, points, completion, image_url))
 ##
 # TODO the number of completion and likes appear next to the date which change the html hierarchy, but not if they are 0
 #  the date and tags retrieval need to take it into account
