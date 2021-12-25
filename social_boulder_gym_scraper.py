@@ -14,5 +14,12 @@ import pickle
 with open('parsed_boulder_list.pckl', 'wb') as file:
     pickle.dump(parsed_boulder_list, file)
 
-# with open('boulder_source.pckl', 'rb') as file:
-#     boulders_source = pickle.load(file)
+with open('boulder_source.pckl', 'rb') as file:
+    boulders_source = pickle.load(file)
+
+import psycopg2
+
+boulder = boulders_source[0]
+with psycopg2.connect("dbname=gym_arkose_nation user=climbing_data password=admin host=localhost") as conn:
+    with conn.cursor() as cur:
+
