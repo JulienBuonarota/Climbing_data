@@ -16,3 +16,5 @@ with open('parsed_boulder_list.pckl', 'wb') as file:
 
 # with open('boulder_source.pckl', 'rb') as file:
 #     boulders_source = pickle.load(file)
+
+# TODO Storage of the parsed boulders in a database
