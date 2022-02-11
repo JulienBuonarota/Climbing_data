@@ -2,7 +2,7 @@
 
 SELECT * FROM boulder;
 
-SELECT * FROM test;
+SELECT * FROM gym;
 
 -- Get the list of created tables and indexes
 SELECT *
@@ -55,9 +55,12 @@ CREATE TABLE IF NOT EXISTS gym
 
 SELECT *
 FROM gym;
-	
-INSERT INTO gym(gym_name,city, address)
-VALUES ('arkose_nation', 'paris', '35 Rue des Grands Champs, Paris, FR 75020');
+
+
+INSERT INTO gym(gym_name, city, address, social_boulder_url, scrape_on)
+VALUES ('arkose_nation','paris','35 Rue des Grands Champs, Paris, FR 75020','https://www.sboulder.com/arkose/nation',TRUE);
+
+
 
 INSERT INTO boulder(grade, sub_grade, gym_id, map_section, tag, date_opened, date_closed, nb_like, nb_comment, point, nb_completion, img_url)
 VALUES

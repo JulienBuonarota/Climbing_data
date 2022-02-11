@@ -1,4 +1,4 @@
-import psycopg2
+ import psycopg2
 
 # cur.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
 
@@ -16,10 +16,10 @@ with psycopg2.connect("dbname=ClimbingGymDB user=climbing_data password=admin ho
         tag text[],
         date_opened date,
         date_closed date,
-        num_like smallint,
-        num_comment smallint,
-        point smallint,
-        completion smallint,
+        nb_like smallint,
+        nb_comment smallint,
+        nb_point smallint,
+        nb_completion smallint,
         img_url text);""")
     # gym table
     with conn.cursor() as cur:
@@ -36,3 +36,4 @@ with psycopg2.connect("dbname=ClimbingGymDB user=climbing_data password=admin ho
                        ON boulder (gym_id);""")
 
         
+  
