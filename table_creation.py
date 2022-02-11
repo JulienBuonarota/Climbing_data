@@ -4,7 +4,7 @@ import psycopg2
 
 # boulders table
 # grade 
-with psycopg2.connect("dbname=gym_arkose_nation user=climbing_data password=admin host=localhost") as conn:
+with psycopg2.connect("dbname=ClimbingGymDB user=climbing_data password=admin host=localhost") as conn:
     # boulder table
     with conn.cursor() as cur:
         cur.execute("""CREATE TABLE IF NOT EXISTS boulder 
@@ -21,23 +21,16 @@ with psycopg2.connect("dbname=gym_arkose_nation user=climbing_data password=admi
         point smallint,
         completion smallint,
         img_url text);""")
-    # comments table
-    with conn.cursor() as cur:
-        cur.execute("""CREATE TABLE IF NOT EXISTS comment
-        (id serial PRIMARY KEY,
-        boulder_id integer,
-        added_date date,
-        comment text);""")
     # gym table
     with conn.cursor() as cur:
         cur.execute("""CREATE TABLE IF NOT EXISTS gym
         (id serial PRIMARY KEY,
+        gym_name text,
         city text,
-        address text);""")
-
-    with conn.cursor() as cur:
-        cur.execute("""CREATE INDEX IF NOT EXISTS comment_idx
-                       ON comment (boulder_id);""")
+        address text,
+        social_boulder_url text,
+        scrape_on boolean);""")
+    # Index
     with conn.cursor() as cur:
         cur.execute("""CREATE INDEX IF NOT EXISTS gym_id_idx
                        ON boulder (gym_id);""")
