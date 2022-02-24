@@ -39,8 +39,8 @@ VALUES (12, 'purple', '2', 1, ((62, 46), (73, 46), (73, 52)), ('100%\xa0Volumes'
 DROP TABLE boulders;
 
 -- create table
-CREATE TABLE IF NOT EXISTS boulder 
-        (id serial   PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS boulder
+        (id  	     serial PRIMARY KEY,
         grade	     text,
         sub_grade    text,
         gym_id 	     smallint,
@@ -171,5 +171,68 @@ INSERT INTO boulder_like(boulder_id, registration_date, nb_like)
 VALUES (8, '2022-02-14', 0);
 
 	
+SELECT
+	*
+FROM
+	boulder
+WHERE
+	gym_id = 1
+	AND id = 289
+	AND date_opened > '2022-01-01';
 
+
+SELECT
+	DISTINCT date_opened,
+	gym_id
+FROM
+	boulder
+WHERE
+	gym_id !=1
+	or (gym_id = 1 and date_opened > '2022-01-01')
+ORDER BY
+      date_opened;
 	
+	
+
+SELECT
+	gym_id,
+	grade
+FROM
+	boulder
+ORDER BY
+      gym_id,
+      CASE
+	WHEN grade = 'yellow' THEN 1
+	WHEN grade = 'green' THEN 2
+	WHEN grade = 'blue' THEN 3
+	WHEN grade = 'red' THEN 4
+	WHEN grade = 'black' THEN 5
+	ELSE 6
+	END;
+
+SELECT
+	boulder.gym_id,
+	gym.gym_name,
+	gym.id
+FROM boulder
+INNER JOIN gym ON boulder.gym_id = gym.id;
+
+SELECT
+	*
+FROM
+	boulder
+INNER JOIN gym ON boulder.gym_id = gym.id
+WHERE
+	boulder.gym_id !=1
+	or (boulder.gym_id = 1 and boulder.date_opened > '2022-01-01')
+ORDER BY
+  gym_id,
+  CASE
+	WHEN grade = 'yellow' THEN 1
+	WHEN grade = 'green' THEN 2
+	WHEN grade = 'blue' THEN 3
+	WHEN grade = 'red' THEN 4
+	WHEN grade = 'black' THEN 5
+	ELSE 6
+	END;
+

@@ -12,6 +12,11 @@ import urllib.request
 # TODO define a logger to display the prints when debugging only
 
 def boulder_scraper(url):
+    """
+    Scrape all opened boulders at url.
+    :param: url
+    :return: list of boulder html
+    """
     # Headless firefox
     firefoxOptions = sel.webdriver.FirefoxOptions()
     firefoxOptions.headless = True
@@ -20,7 +25,7 @@ def boulder_scraper(url):
     driver.get(url)
     # wait for boulders to load
     element = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CLASS_NAME, 'card-card-tr-46')))
+        EC.presence_of_element_located((By.CLASS_NAME, 'card-card-tr-47')))
     # Once the first boulders are there, the page need to be scrolled down to get them all
     html = driver.find_element(By.TAG_NAME, 'html')
     bottom_page_reached = False
@@ -34,7 +39,7 @@ def boulder_scraper(url):
     # Open and store all boulder 'card'
     boulder_list = []
     # each boulder 'card' needs to be expanded to have access to the tag, date and image
-    boulders = driver.find_elements(By.CLASS_NAME, 'card-card-tr-46')
+    boulders = driver.find_elements(By.CLASS_NAME, 'card-card-tr-47')
     # It is necessary to scroll back up the page to be able to click on the buttons
     driver.execute_script("window.scrollTo(0, 0)")
     for count, boulder in enumerate(boulders):
@@ -49,7 +54,7 @@ def boulder_scraper(url):
             # wait for the tags to load,
             try:
                 element = WebDriverWait(driver, 3).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, 'card-info-tr-58')))
+                    EC.presence_of_element_located((By.CLASS_NAME, 'card-info-tr-59')))
             except sel_exceptions.TimeoutException:
                 print("The boulder 'card' didn't opened at boulder {}/{} after {} clicks"
                       .format(count, len(boulders), i+1))
@@ -65,7 +70,7 @@ def boulder_scraper(url):
         boulder_list.append(boulder_source)
 
         # a short sleep is necessary in order for the next button click to work
-        # probably as to do with position update time
+        # probably has to do with position update time
         time.sleep(0.3)
         # find the expand button and click it to close it, will try a maximum of 3 times
         for i in range(3):
@@ -82,5 +87,6 @@ def boulder_scraper(url):
             # Maximum number of try reached
             if i == 2:
                 raise Exception("Unable to close boulder card and thus get the proper html content")
+    driver.quit()
     # return all the boulder html
     return boulder_list

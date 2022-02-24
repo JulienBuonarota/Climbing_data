@@ -78,7 +78,7 @@ def boulder_parser(boulder_html):
 
     ## Tags, date and image
     # get the date and tags
-    infos = boulder_html.find_all('div', {'class': 'card-info-tr-58'})
+    infos = boulder_html.find_all('div', {'class': 'card-info-tr-59'})
     infos_text = [i.text for i in infos]
     # Infos cn catch several other elements representing likes, comments,...
     # search of element that match a date format
@@ -100,7 +100,7 @@ def boulder_parser(boulder_html):
     else:
         tags = tags_parser(infos_text[tags_index])
     # get the image
-    image_url = boulder_html.find('img', {'class': 'card-image-tr-41'})['src']
+    image_url = boulder_html.find('img', {'class': 'card-image-tr-42'})['src']
     # local_filename, headers = urllib.request.urlretrieve(image_url, "./images/1.jpg")
     # Get the likes and comments, if there is some (otherwise not displayed)
     like_svg_path = "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 " \
