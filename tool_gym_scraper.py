@@ -20,7 +20,7 @@ def boulder_scraper(url):
     # Headless firefox
     firefoxOptions = sel.webdriver.FirefoxOptions()
     firefoxOptions.headless = True
-    driver = sel.webdriver.Firefox()
+    driver = sel.webdriver.Firefox(options=firefoxOptions)
     # Loading the site, wait until boulder elements are in the html and then scroll down
     driver.get(url)
     # wait for boulders to load

@@ -3,6 +3,20 @@ import tool_boulder_parser as tbp
 import tool_gym_scraper as tgs
 import tool_DB as tdb
 import pickle
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel("INFO")
+
+hdlr = logging.FileHandler("my_test_logging.log", mode='a')
+hdlr.setLevel("INFO")
+
+str_format = '%(asctime)s - %(levelname)s - %(message)s'
+frmt = logging.Formatter(fmt=str_format)
+
+hdlr.setFormatter(frmt)
+logger.addHandler(hdlr)
+
 
 DB_d = {"dbname": "ClimbingGymDB", "user": "climbing_data", "password": "admin", "host": "localhost"}
 gyms = tdb.get_gym_table(DB_d)
