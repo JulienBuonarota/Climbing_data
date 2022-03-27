@@ -1,0 +1,3 @@
+[submodule "ProcessLogger"]
+	path = ProcessLogger
+	url = https://github.com/JulienBuonarota/ProcessLogger.git

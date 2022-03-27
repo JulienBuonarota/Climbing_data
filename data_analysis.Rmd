@@ -1,0 +1,65 @@
+---
+title: "Arkose gyms data analysis"
+output: html_notebook
+---
+## Difficulty repartition between gyms
+
+```{r}
+library(DBI)
+con <- dbConnect(RPostgres::Postgres(),dbname = 'ClimbingGymDB', 
+                 host = 'localhost',
+                 port = 5432,
+                 user = 'climbing_data',
+                 password = 'admin')
+
+```
+All the boulder's difficulty informations are in the boulder table.
+
+```{r}
+query <- "
+SELECT
+	*
+FROM
+	boulder
+INNER JOIN gym ON boulder.gym_id = gym.id
+WHERE
+	boulder.gym_id !=1
+	or (boulder.gym_id = 1 and boulder.date_opened > '2022-01-01')
+ORDER BY
+  gym_id,
+  CASE
+	WHEN grade = 'yellow' THEN 1
+	WHEN grade = 'green' THEN 2
+	WHEN grade = 'blue' THEN 3
+	WHEN grade = 'red' THEN 4
+	WHEN grade = 'black' THEN 5
+	ELSE 6
+	END;"
+res <- dbSendQuery(con, query)
+boulders <- dbFetch(res)
+```
+
+```{r}
+library(tidyverse)
+# color range corresponding to boulder difficulties
+# lock grade color order
+grade_order <- rev(c("yellow", "green", "blue", "red", "black", "purple"))
+boulders$factor_grade <- factor(boulders$grade, levels=grade_order)
+
+# order gyms by number of boulders
+nb_boulder_order <- boulders %>% count(gym_name) %>% arrange(n)
+nb_boulder_order <- separate(nb_boulder_order, gym_name, c("gym", "short_name"),
+                             remove = FALSE, extra = "merge")
+boulders$factor_gym <- factor(boulders$gym_name, levels = nb_boulder_order$gym_name,
+                              labels = nb_boulder_order$short_name)
+
+ggplot(data=boulders) + 
+  geom_bar(mapping=aes(y=factor_gym, fill=factor_grade)) + 
+  scale_fill_manual(values=grade_order, name = "Grade") + 
+  labs(title = "Boulder difficulty distribution",
+       subtitle = "of Arkose gyms",
+       x = "Number of boulder",
+       y = "Gym name")
+# TODO put title
+```
+
